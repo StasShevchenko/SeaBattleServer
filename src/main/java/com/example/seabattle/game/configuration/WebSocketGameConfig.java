@@ -12,13 +12,15 @@ public class WebSocketGameConfig implements WebSocketMessageBrokerConfigurer {
 
     @Override
     public void registerStompEndpoints(final StompEndpointRegistry registry) {
-        registry.addEndpoint("/seabattle").setAllowedOriginPatterns("*").withSockJS();
+        registry.addEndpoint("/seabattle")
+                .setAllowedOriginPatterns("*")
+                .withSockJS();
     }
 
     @Override
     public void configureMessageBroker(final MessageBrokerRegistry registry) {
         registry.setApplicationDestinationPrefixes("/app");
-        registry.enableSimpleBroker("/topic");
+        registry.enableSimpleBroker("/topic", "/private");
     }
 
 }

@@ -33,10 +33,12 @@ public class WebSocketEventListener {
     public void handleWebSocketDisconnectListener(SessionDisconnectEvent event) {
         StompHeaderAccessor headerAccessor = StompHeaderAccessor.wrap(event.getMessage());
         String playerName = (String) headerAccessor.getSessionAttributes().get("playername");
+        String playerId = (String) headerAccessor.getSessionAttributes().get("playerid");
         if(playerName != null) {
             logger.info("User Disconnected : " + playerName);
             Player player = new Player();
             player.setLogin(playerName);
+            player.setId(playerId);
             PlayersSessionList.getInstance().removePlayerFromSession(player);
             ArrayList<Player> playersList = PlayersSessionList.getInstance().getPlayersList();
             messagingTemplate.convertAndSend("/topic/players", playersList);
