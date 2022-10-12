@@ -39,7 +39,7 @@ public class PlayersController {
 
     @MessageMapping("/private-message")
     public void send(@Payload PrivateMessage message){
-        simpMessagingTemplate.convertAndSend("/private/messages"+message.getReceiverId(), message.getMessage());
+        simpMessagingTemplate.convertAndSend("/private/messages"+message.getReceiverId(), message);
     }
 
 }
