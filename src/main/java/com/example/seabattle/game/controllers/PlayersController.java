@@ -1,9 +1,7 @@
 package com.example.seabattle.game.controllers;
 
 
-import com.example.seabattle.game.model.Player;
-import com.example.seabattle.game.model.PlayersSessionList;
-import com.example.seabattle.game.model.PrivateMessage;
+import com.example.seabattle.game.model.*;
 import com.example.seabattle.game.services.PlayersService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.MessageMapping;
@@ -39,7 +37,26 @@ public class PlayersController {
 
     @MessageMapping("/private-message")
     public void send(@Payload PrivateMessage message){
+
         simpMessagingTemplate.convertAndSend("/private/messages"+message.getReceiverId(), message);
+    }
+
+    @MessageMapping("/init-game")
+    public void initGame(@Payload Game game){
+        GameSessionList.getInstance().addGameToSession(game);
+        simpMessagingTemplate.convertAndSend("/private/game"+game.getFirstPlayerId(), game);
+        simpMessagingTemplate.convertAndSend("/private/game"+game.getSecondPlayerId(), game);
+    }
+
+    @MessageMapping("/send-field")
+    public void sendField(@Payload DestinationField destinationField){
+        simpMessagingTemplate.convertAndSend("/private/game"+destinationField.getReceiverId(), destinationField);
+    }
+
+    @MessageMapping("/send-move")
+    public void sendMove(@Payload Move move){
+        System.out.println("кто то походил!");
+        simpMessagingTemplate.convertAndSend("/private/game" + move.getReceiverId(), move);
     }
 
 }
