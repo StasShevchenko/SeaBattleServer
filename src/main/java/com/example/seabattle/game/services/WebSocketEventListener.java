@@ -1,6 +1,8 @@
 package com.example.seabattle.game.services;
 
 
+import com.example.seabattle.game.data_source.GamesDb;
+import com.example.seabattle.game.data_source.GamesRepository;
 import com.example.seabattle.game.model.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,30 +42,37 @@ public class WebSocketEventListener {
             Player player = new Player();
             player.setLogin(playerName);
             player.setId(playerId);
-            HiddenPlayersSessionList.getInstance().removePlayerFromHiddenSession(player);
-            PlayersSessionList.getInstance().removePlayerFromSession(player);
+
             //Отправляем сообщение игроку о технической победе
             Game game = GameSessionList.getInstance().getGameByPlayerId(playerId);
             if (game != null) {
                 String receiverId;
+                String winnerId;
+                String loserId;
                 if (Objects.equals(game.getSecondPlayerId(), playerId)) {
                     receiverId = game.getFirstPlayerId();
+                    winnerId = receiverId;
+                    loserId = game.getSecondPlayerId();
                 } else {
                     receiverId = game.getSecondPlayerId();
+                    winnerId = receiverId;
+                    loserId = game.getSecondPlayerId();
                 }
+                GamesDb gamesDb = new GamesDb();
+                GamesRepository gamesRepository = new GamesRepository(gamesDb);
+                ArrayList<GameInfo> gamesList = gamesRepository.addGame(winnerId, loserId);
+                GameSessionList.getInstance().removeGameFromSession(game);
+                messagingTemplate.convertAndSend("/topic/games", gamesList);
                 PrivateMessage message = new PrivateMessage();
                 message.setMessage("ENEMY_DISCONNECTED");
                 message.setReceiverId(receiverId);
                 Player winPlayer = HiddenPlayersSessionList.getInstance().getPlayerById(receiverId);
-                System.out.println("Победитель: " + winPlayer);
                 HiddenPlayersSessionList.getInstance().removePlayerFromHiddenSession(winPlayer);
-                System.out.println("Игрок добавлен через отключение");
                 PlayersSessionList.getInstance().addPlayerToSession(winPlayer);
-                System.out.println("Отправляю сообщение!");
-                System.out.println(receiverId);
                 messagingTemplate.convertAndSend("/private/messages"+message.getReceiverId(), message);
-                GameSessionList.getInstance().removeGameFromSession(game);
             }
+            HiddenPlayersSessionList.getInstance().removePlayerFromHiddenSession(player);
+            PlayersSessionList.getInstance().removePlayerFromSession(player);
             ArrayList<Player> playersList = PlayersSessionList.getInstance().getPlayersList();
             System.out.println(playersList);
 

@@ -1,6 +1,8 @@
 package com.example.seabattle.game.controllers;
 
 
+import com.example.seabattle.game.data_source.GamesDb;
+import com.example.seabattle.game.data_source.GamesRepository;
 import com.example.seabattle.game.model.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.MessageMapping;
@@ -10,6 +12,7 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
 
 import java.util.ArrayList;
+import java.util.Objects;
 
 @Controller
 public class PlayersController {
@@ -27,6 +30,10 @@ public class PlayersController {
         PlayersSessionList.getInstance().addPlayerToSession(player);
         ArrayList<Player> playersList = PlayersSessionList.getInstance().getPlayersList();
         simpMessagingTemplate.convertAndSend("/topic/players", playersList);
+        GamesDb gamesDb = new GamesDb();
+        GamesRepository gamesRepository = new GamesRepository(gamesDb);
+        ArrayList<GameInfo> gamesList = gamesRepository.getGames();
+        simpMessagingTemplate.convertAndSend("/topic/games", gamesList);
         headerAccessor.getSessionAttributes().put("playername",
                 player.getLogin());
         headerAccessor.getSessionAttributes().put("playerid", player.getId());
@@ -44,10 +51,23 @@ public class PlayersController {
                 showPlayer(message.getReceiverId());
             }
             case "YOU_LOSE" -> {
+                Game game = GameSessionList.getInstance().getGameByPlayerId(message.getReceiverId());
+                String winnerId;
+                String loserId;
+                if (Objects.equals(game.getFirstPlayerId(), message.getSenderId())) {
+                    winnerId = game.getFirstPlayerId();
+                    loserId = game.getSecondPlayerId();
+                } else {
+                    winnerId = game.getSecondPlayerId();
+                    loserId = game.getFirstPlayerId();
+                }
+                GamesDb gamesDb = new GamesDb();
+                GamesRepository gamesRepository = new GamesRepository(gamesDb);
+                ArrayList<GameInfo> gamesList = gamesRepository.addGame(winnerId, loserId);
+                GameSessionList.getInstance().removeGameFromSession(game);
                 showPlayer(message.getSenderId());
                 showPlayer(message.getReceiverId());
-                Game game = GameSessionList.getInstance().getGameByPlayerId(message.getReceiverId());
-                GameSessionList.getInstance().removeGameFromSession(game);
+                simpMessagingTemplate.convertAndSend("/topic/games", gamesList);
             }
         }
         simpMessagingTemplate.convertAndSend("/private/messages"+message.getReceiverId(), message);
