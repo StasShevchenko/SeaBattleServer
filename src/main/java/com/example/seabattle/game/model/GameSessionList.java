@@ -1,6 +1,7 @@
 package com.example.seabattle.game.model;
 
 import java.util.ArrayList;
+import java.util.Objects;
 
 public class GameSessionList {
 
@@ -18,6 +19,15 @@ public class GameSessionList {
 
     public void addGameToSession(Game game) {
         gameList.add(game);
+    }
+
+    public Game getGameByPlayerId(String playerId) {
+        for (Game game : gameList) {
+            if (Objects.equals(playerId, game.getFirstPlayerId()) || Objects.equals(playerId, game.getSecondPlayerId())) {
+                return game;
+            }
+        }
+        return null;
     }
 
     public void removeGameFromSession(Game game) {

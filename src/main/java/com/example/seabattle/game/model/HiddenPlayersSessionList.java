@@ -3,15 +3,15 @@ package com.example.seabattle.game.model;
 import java.util.ArrayList;
 import java.util.Objects;
 
-public class PlayersSessionList {
+public class HiddenPlayersSessionList {
     private ArrayList<Player> playersList = new ArrayList<>();
-    private static PlayersSessionList instance = null;
+    private static HiddenPlayersSessionList instance = null;
 
-    private PlayersSessionList(){}
+    private HiddenPlayersSessionList(){}
 
-    public static PlayersSessionList getInstance(){
+    public static HiddenPlayersSessionList getInstance(){
         if(instance == null){
-            instance = new PlayersSessionList();
+            instance = new HiddenPlayersSessionList();
         }
         return instance;
     }
@@ -25,15 +25,12 @@ public class PlayersSessionList {
         return null;
     }
 
-    public void addPlayerToSession(Player player) {
+    public void addPlayerToHiddenSession(Player player) {
         playersList.add(player);
     }
 
-    public void removePlayerFromSession(Player player) {
+    public void removePlayerFromHiddenSession(Player player) {
         playersList.remove(player);
     }
 
-    public ArrayList<Player> getPlayersList(){
-        return playersList;
-    }
 }

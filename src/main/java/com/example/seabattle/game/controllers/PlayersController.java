@@ -2,7 +2,6 @@ package com.example.seabattle.game.controllers;
 
 
 import com.example.seabattle.game.model.*;
-import com.example.seabattle.game.services.PlayersService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
@@ -16,9 +15,6 @@ import java.util.ArrayList;
 public class PlayersController {
 
     @Autowired
-    private PlayersService playersService;
-
-    @Autowired
     private SimpMessagingTemplate simpMessagingTemplate;
 
     @MessageMapping("/addplayer")
@@ -27,6 +23,7 @@ public class PlayersController {
         //Добавляем пользователя в веб сокет сессию
         Player player = new Player();
         player.setLogin(playerName);
+        System.out.println("Игрок добавлен через join");
         PlayersSessionList.getInstance().addPlayerToSession(player);
         ArrayList<Player> playersList = PlayersSessionList.getInstance().getPlayersList();
         simpMessagingTemplate.convertAndSend("/topic/players", playersList);
@@ -37,7 +34,22 @@ public class PlayersController {
 
     @MessageMapping("/private-message")
     public void send(@Payload PrivateMessage message){
-
+        switch (message.getMessage()) {
+            case "INVITE" -> {
+                hidePlayer(message.getSenderId());
+                hidePlayer(message.getReceiverId());
+            }
+            case "REJECT", "CANCEL_INVITATION" -> {
+                showPlayer(message.getSenderId());
+                showPlayer(message.getReceiverId());
+            }
+            case "YOU_LOSE" -> {
+                showPlayer(message.getSenderId());
+                showPlayer(message.getReceiverId());
+                Game game = GameSessionList.getInstance().getGameByPlayerId(message.getReceiverId());
+                GameSessionList.getInstance().removeGameFromSession(game);
+            }
+        }
         simpMessagingTemplate.convertAndSend("/private/messages"+message.getReceiverId(), message);
     }
 
@@ -55,8 +67,27 @@ public class PlayersController {
 
     @MessageMapping("/send-move")
     public void sendMove(@Payload Move move){
-        System.out.println("кто то походил!");
         simpMessagingTemplate.convertAndSend("/private/game" + move.getReceiverId(), move);
+    }
+
+
+
+    private void hidePlayer(String playerId) {
+        Player player = PlayersSessionList.getInstance().getPlayerById(playerId);
+        System.out.println("Прячем игрока " + player);
+        HiddenPlayersSessionList.getInstance().addPlayerToHiddenSession(player);
+        PlayersSessionList.getInstance().removePlayerFromSession(player);
+        ArrayList<Player> playersList = PlayersSessionList.getInstance().getPlayersList();
+        simpMessagingTemplate.convertAndSend("/topic/players", playersList);
+    }
+
+    private void showPlayer(String playerId) {
+        Player player = HiddenPlayersSessionList.getInstance().getPlayerById(playerId);
+        System.out.println("Игрок добавлен через show Player "+ player);
+        PlayersSessionList.getInstance().addPlayerToSession(player);
+        HiddenPlayersSessionList.getInstance().removePlayerFromHiddenSession(player);
+        ArrayList<Player> playersList = PlayersSessionList.getInstance().getPlayersList();
+        simpMessagingTemplate.convertAndSend("/topic/players", playersList);
     }
 
 }
