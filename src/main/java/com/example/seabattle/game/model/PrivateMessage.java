@@ -5,7 +5,6 @@ import lombok.Data;
 @Data
 public class PrivateMessage {
     private String message;
-    private String receiverId;
-    private String senderId;
+    private String receiverName;
     private String senderName;
 }

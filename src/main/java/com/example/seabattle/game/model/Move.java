@@ -6,5 +6,5 @@ import lombok.Data;
 public class Move {
     private String x;
     private  String y;
-    private String receiverId;
+    private String receiverName;
 }

@@ -16,9 +16,10 @@ public class HiddenPlayersSessionList {
         return instance;
     }
 
-    public Player getPlayerById(String id) {
+
+    public Player getPlayerByName(String name) {
         for (Player player : playersList) {
-            if (Objects.equals(player.getId(), id)) {
+            if (Objects.equals(player.getLogin(), name)) {
                 return player;
             }
         }

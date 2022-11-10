@@ -7,5 +7,5 @@ import java.util.UUID;
 @Data
 public class Player {
     private String login;
-    private String id = UUID.randomUUID().toString();
+    private String status;
 }

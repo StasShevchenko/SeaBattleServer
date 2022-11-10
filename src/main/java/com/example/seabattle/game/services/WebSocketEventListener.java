@@ -1,6 +1,7 @@
 package com.example.seabattle.game.services;
 
 
+import com.example.seabattle.game.controllers.PlayerSessionAttributesInteractor;
 import com.example.seabattle.game.data_source.GamesDb;
 import com.example.seabattle.game.data_source.GamesRepository;
 import com.example.seabattle.game.model.*;
@@ -8,7 +9,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
-import org.springframework.messaging.Message;
 import org.springframework.messaging.simp.SimpMessageSendingOperations;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.stereotype.Component;
@@ -33,50 +33,55 @@ public class WebSocketEventListener {
     }
 
     @EventListener
-    public void handleWebSocketDisconnectListener(SessionDisconnectEvent event) {
+    public synchronized void handleWebSocketDisconnectListener(SessionDisconnectEvent event) {
         StompHeaderAccessor headerAccessor = StompHeaderAccessor.wrap(event.getMessage());
-        String playerName = (String) headerAccessor.getSessionAttributes().get("playername");
-        String playerId = (String) headerAccessor.getSessionAttributes().get("playerid");
-        if(playerName != null) {
-            logger.info("User Disconnected : " + playerName);
-            Player player = new Player();
-            player.setLogin(playerName);
-            player.setId(playerId);
-
-            //Отправляем сообщение игроку о технической победе
-            Game game = GameSessionList.getInstance().getGameByPlayerId(playerId);
-            if (game != null) {
-                String receiverId;
-                String winnerId;
-                String loserId;
-                if (Objects.equals(game.getSecondPlayerId(), playerId)) {
-                    receiverId = game.getFirstPlayerId();
-                    winnerId = receiverId;
-                    loserId = game.getSecondPlayerId();
-                } else {
-                    receiverId = game.getSecondPlayerId();
-                    winnerId = receiverId;
-                    loserId = game.getSecondPlayerId();
+        PlayerSessionAttributesInteractor sessionInteractor = new PlayerSessionAttributesInteractor(headerAccessor);
+        Player player = sessionInteractor.getPlayerFromDisconnectedSession();
+        System.out.println("disconnect: " + player);
+        if (player.getLogin() != null) {
+            logger.info("User Disconnected : " + player.getLogin());
+            if (Objects.equals(player.getStatus(), "playing")) {
+                //Отправляем сообщение игроку о технической победе
+                Game game = GameSessionList.getInstance().getGameByPlayerName(player.getLogin());
+                System.out.println(game);
+                System.out.println(GameSessionList.getInstance().getGameList());
+                //null будет в случае удаления игры через LOSE в PlayersController
+                if (game != null) {
+                    String receiverName;
+                    String winnerName;
+                    String loserName;
+                    if (Objects.equals(game.getSecondPlayerName(), player.getLogin())) {
+                        receiverName = game.getFirstPlayerName();
+                        winnerName = receiverName;
+                        loserName = game.getSecondPlayerName();
+                    } else {
+                        receiverName = game.getSecondPlayerName();
+                        winnerName = receiverName;
+                        loserName = game.getFirstPlayerName();
+                    }
+                    GamesDb gamesDb = new GamesDb();
+                    GamesRepository gamesRepository = new GamesRepository(gamesDb);
+                    ArrayList<GameInfo> gamesList = gamesRepository.addGame(winnerName, loserName);
+                    GameSessionList.getInstance().removeGameFromSession(game);
+                    messagingTemplate.convertAndSend("/topic/games", gamesList);
+                    PrivateMessage message = new PrivateMessage();
+                    message.setMessage("ENEMY_DISCONNECTED");
+                    message.setReceiverName(receiverName);
+                    Player winPlayer = HiddenPlayersSessionList.getInstance().getPlayerByName(receiverName);
+                    Player losePlayer = HiddenPlayersSessionList.getInstance().getPlayerByName(loserName);
+                    HiddenPlayersSessionList.getInstance().removePlayerFromHiddenSession(winPlayer);
+                    HiddenPlayersSessionList.getInstance().removePlayerFromHiddenSession(losePlayer);
+                    PlayersSessionList.getInstance().addPlayerToSession(winPlayer);
+                    messagingTemplate.convertAndSend("/private/messages" + message.getReceiverName(), message);
                 }
-                GamesDb gamesDb = new GamesDb();
-                GamesRepository gamesRepository = new GamesRepository(gamesDb);
-                ArrayList<GameInfo> gamesList = gamesRepository.addGame(winnerId, loserId);
-                GameSessionList.getInstance().removeGameFromSession(game);
-                messagingTemplate.convertAndSend("/topic/games", gamesList);
-                PrivateMessage message = new PrivateMessage();
-                message.setMessage("ENEMY_DISCONNECTED");
-                message.setReceiverId(receiverId);
-                Player winPlayer = HiddenPlayersSessionList.getInstance().getPlayerById(receiverId);
-                HiddenPlayersSessionList.getInstance().removePlayerFromHiddenSession(winPlayer);
-                PlayersSessionList.getInstance().addPlayerToSession(winPlayer);
-                messagingTemplate.convertAndSend("/private/messages"+message.getReceiverId(), message);
+            } else if (Objects.equals(player.getStatus(), "waiting")) {
+                PlayersSessionList.getInstance().removePlayerFromSession(player);
+                //Удаляем игрока из скрытых, если он не играет
+                Game currentGame = GameSessionList.getInstance().getGameByPlayerName(player.getLogin());
+                if (currentGame == null) {
+                    HiddenPlayersSessionList.getInstance().removePlayerFromHiddenSession(player);
+                }
             }
-            HiddenPlayersSessionList.getInstance().removePlayerFromHiddenSession(player);
-            PlayersSessionList.getInstance().removePlayerFromSession(player);
-            ArrayList<Player> playersList = PlayersSessionList.getInstance().getPlayersList();
-            System.out.println(playersList);
-
-            messagingTemplate.convertAndSend("/topic/players", playersList);
         }
     }
 }

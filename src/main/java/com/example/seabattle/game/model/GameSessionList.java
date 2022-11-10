@@ -21,9 +21,9 @@ public class GameSessionList {
         gameList.add(game);
     }
 
-    public Game getGameByPlayerId(String playerId) {
+    public Game getGameByPlayerName(String playerName) {
         for (Game game : gameList) {
-            if (Objects.equals(playerId, game.getFirstPlayerId()) || Objects.equals(playerId, game.getSecondPlayerId())) {
+            if (Objects.equals(playerName, game.getFirstPlayerName()) || Objects.equals(playerName, game.getSecondPlayerName())) {
                 return game;
             }
         }

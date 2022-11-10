@@ -16,9 +16,10 @@ public class GamesRepository {
         this.gamesDb = gamesDb;
     }
 
-    public ArrayList<GameInfo> addGame(String winnerId, String loserId) {
-        Player winnerPlayer = HiddenPlayersSessionList.getInstance().getPlayerById(winnerId);
-        Player loserPlayer = HiddenPlayersSessionList.getInstance().getPlayerById(loserId);
+    public ArrayList<GameInfo> addGame(String winnerName, String loserName) {
+        System.out.println("Winner name: "+winnerName);
+        Player winnerPlayer = HiddenPlayersSessionList.getInstance().getPlayerByName(winnerName);
+        Player loserPlayer = HiddenPlayersSessionList.getInstance().getPlayerByName(loserName);
         GameInfo gameInfo = new GameInfo();
         gameInfo.setWinner(winnerPlayer.getLogin());
         gameInfo.setLoser(loserPlayer.getLogin());

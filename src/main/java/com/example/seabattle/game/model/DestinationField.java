@@ -4,6 +4,6 @@ import lombok.Data;
 
 @Data
 public class DestinationField {
-    private String receiverId;
+    private String receiverName;
     private Integer[][] gameField;
 }

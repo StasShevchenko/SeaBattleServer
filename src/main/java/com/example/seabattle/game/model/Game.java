@@ -4,6 +4,6 @@ import lombok.Data;
 
 @Data
 public class Game {
-    private String firstPlayerId;
-    private String secondPlayerId;
+    private String firstPlayerName;
+    private String secondPlayerName;
 }
