@@ -29,7 +29,6 @@ public class WebSocketEventListener {
 
     @EventListener
     public void handleWebSocketConnectListener(SessionConnectedEvent event) {
-        logger.info("Received a new web socket connection");
     }
 
     @EventListener
@@ -37,16 +36,15 @@ public class WebSocketEventListener {
         StompHeaderAccessor headerAccessor = StompHeaderAccessor.wrap(event.getMessage());
         PlayerSessionAttributesInteractor sessionInteractor = new PlayerSessionAttributesInteractor(headerAccessor);
         Player player = sessionInteractor.getPlayerFromDisconnectedSession();
-        System.out.println("disconnect: " + player);
+        System.out.println("ОТКЛЮЧИЛСЯ ИГРОК: " + player);
         if (player.getLogin() != null) {
-            logger.info("User Disconnected : " + player.getLogin());
+            logger.info("ЛОГИН ОТКЛЮЧИВШЕГОСЯ : " + player.getLogin());
             if (Objects.equals(player.getStatus(), "playing")) {
                 //Отправляем сообщение игроку о технической победе
                 Game game = GameSessionList.getInstance().getGameByPlayerName(player.getLogin());
-                System.out.println(game);
-                System.out.println(GameSessionList.getInstance().getGameList());
                 //null будет в случае удаления игры через LOSE в PlayersController
                 if (game != null) {
+                    System.out.println("ОТКЛЮЧИВШИЙСЯ БЫЛ В ИГРЕ " + game);
                     String receiverName;
                     String winnerName;
                     String loserName;
@@ -75,6 +73,7 @@ public class WebSocketEventListener {
                     messagingTemplate.convertAndSend("/private/messages" + message.getReceiverName(), message);
                 }
             } else if (Objects.equals(player.getStatus(), "waiting")) {
+                System.out.println("ОТКЛЮЧИЛСЯ ОЖИДАЮЩИЙ ИГРОК");
                 PlayersSessionList.getInstance().removePlayerFromSession(player);
                 //Удаляем игрока из скрытых, если он не играет
                 Game currentGame = GameSessionList.getInstance().getGameByPlayerName(player.getLogin());

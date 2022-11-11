@@ -24,7 +24,6 @@ public class PlayersController {
     public synchronized void joinGame(@Payload Player player,
                            SimpMessageHeaderAccessor headerAccessor) {
         //Добавляем пользователя в веб сокет сессию
-        System.out.println("Игрок добавлен через join: "+player.getLogin());
 
         PlayerSessionAttributesInteractor sessionInteractor = new PlayerSessionAttributesInteractor(headerAccessor);
         sessionInteractor.addPlayerToSession(player);
