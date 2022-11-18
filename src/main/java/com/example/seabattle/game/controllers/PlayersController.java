@@ -37,19 +37,12 @@ public class PlayersController {
             currentPlayer = HiddenPlayersSessionList.getInstance().getPlayerByName(player.getLogin());
             //Проверяем, не в игре ли сейчас игрок
             if(currentPlayer == null) {
-                System.out.println("Игрок добавлен в сессию лист");
                 playersSessionList.addPlayerToSession(player);
             }
         }
         //Отсылаем список игроков всем вновь подключившимся игрокам
         ArrayList<Player> playersList = playersSessionList.getPlayersList();
-        System.out.println("Список игроков в активном листе: " + playersList);
         simpMessagingTemplate.convertAndSend("/topic/players", playersList);
-        //Отсылаем список игр подключившемуся к залу ожидания игроку
-        GamesDb gamesDb = new GamesDb();
-        GamesRepository gamesRepository = new GamesRepository(gamesDb);
-        ArrayList<GameInfo> gamesList = gamesRepository.getGames();
-        simpMessagingTemplate.convertAndSend("/topic/games", gamesList);
     }
 
     @MessageMapping("/private-message")
@@ -64,7 +57,6 @@ public class PlayersController {
                 showPlayer(message.getReceiverName());
             }
             case "YOU_LOSE" -> {
-                System.out.println("YOU LOSE INVOKED");
                 Game game = GameSessionList.getInstance().getGameByPlayerName(message.getReceiverName());
                 String winnerId;
                 String loserId;
@@ -79,10 +71,8 @@ public class PlayersController {
                 GamesRepository gamesRepository = new GamesRepository(gamesDb);
                 ArrayList<GameInfo> gamesList = gamesRepository.addGame(winnerId, loserId);
                 GameSessionList.getInstance().removeGameFromSession(game);
-                System.out.println("Игра была удалена из сессии через сообщение Lose!");
                 showPlayer(message.getSenderName());
                 showPlayer(message.getReceiverName());
-                simpMessagingTemplate.convertAndSend("/topic/games", gamesList);
             }
         }
         simpMessagingTemplate.convertAndSend("/private/messages"+message.getReceiverName(), message);
@@ -90,7 +80,6 @@ public class PlayersController {
 
     @MessageMapping("/init-game")
     public void initGame(@Payload Game game){
-        System.out.println("Инициируем игру");
         Game currentGame = GameSessionList.getInstance().getGameByPlayerName(game.getFirstPlayerName());
         if(currentGame == null) {
             GameSessionList.getInstance().addGameToSession(game);
@@ -111,7 +100,6 @@ public class PlayersController {
 
     private void hidePlayer(String playerName) {
         Player player = PlayersSessionList.getInstance().getPlayerByName(playerName);
-        System.out.println("Прячем игрока " + player);
         HiddenPlayersSessionList.getInstance().addPlayerToHiddenSession(player);
         PlayersSessionList.getInstance().removePlayerFromSession(player);
         ArrayList<Player> playersList = PlayersSessionList.getInstance().getPlayersList();
@@ -120,7 +108,6 @@ public class PlayersController {
 
     private void showPlayer(String playerName) {
         Player player = HiddenPlayersSessionList.getInstance().getPlayerByName(playerName);
-        System.out.println("Игрок добавлен через show Player "+ player);
         PlayersSessionList.getInstance().addPlayerToSession(player);
         HiddenPlayersSessionList.getInstance().removePlayerFromHiddenSession(player);
         ArrayList<Player> playersList = PlayersSessionList.getInstance().getPlayersList();

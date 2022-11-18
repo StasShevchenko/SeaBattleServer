@@ -7,7 +7,6 @@ import org.springframework.web.bind.annotation.*;
 import java.sql.*;
 
 @RestController
-
 public class AuthController {
 
     private final String DB_URL = "jdbc:postgresql://127.0.0.01:5432/seabattle";
@@ -15,7 +14,7 @@ public class AuthController {
     private final String PASS = "MyNameIsEminem";
 
     @PostMapping("/login")
-    @CrossOrigin(origins = "http://192.168.109.228:5501")
+    @CrossOrigin(origins = "*")
     public int logIn(@RequestBody UserCredentials userCredentials) {
         try {
             Class.forName("org.postgresql.Driver");
@@ -23,6 +22,7 @@ public class AuthController {
             Statement statement = connection.createStatement();
             ResultSet resultSet = statement.executeQuery("SELECT * FROM users WHERE login = '" + userCredentials.getLogin() + "' " +
                     "and password = '" + userCredentials.getPassword() + "'");
+            System.out.println("Игрок логинится");
             if (resultSet.next()) return 1;
 
         } catch (SQLException e) {
@@ -34,7 +34,7 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    @CrossOrigin(origins = "http://192.168.109.228:5501")
+    @CrossOrigin(origins = "*")
     public int register(@RequestBody UserCredentials userCredentials) {
         try {
             Class.forName("org.postgresql.Driver");

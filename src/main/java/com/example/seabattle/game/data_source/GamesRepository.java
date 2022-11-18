@@ -17,13 +17,12 @@ public class GamesRepository {
     }
 
     public ArrayList<GameInfo> addGame(String winnerName, String loserName) {
-        System.out.println("Winner name: "+winnerName);
         Player winnerPlayer = HiddenPlayersSessionList.getInstance().getPlayerByName(winnerName);
         Player loserPlayer = HiddenPlayersSessionList.getInstance().getPlayerByName(loserName);
         GameInfo gameInfo = new GameInfo();
         gameInfo.setWinner(winnerPlayer.getLogin());
         gameInfo.setLoser(loserPlayer.getLogin());
-        String date = new SimpleDateFormat("dd.MM.yyyy").format(new Date());
+        String date = new SimpleDateFormat("dd.MM.yyyy.HH:mm").format(new Date());
         gameInfo.setDate(date);
         gamesDb.insertGameInfo(gameInfo);
         return gamesDb.getAllGames();
