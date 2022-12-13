@@ -14,12 +14,22 @@ import org.springframework.stereotype.Controller;
 import java.util.ArrayList;
 import java.util.Objects;
 
+/**
+ * Класс, обеспечивающий передачу
+ * веб-сокет сообщений между игроками
+ */
 @Controller
 public class PlayersController {
 
     @Autowired
     private SimpMessagingTemplate simpMessagingTemplate;
 
+    /**
+     * Метод, который необходим для подключения
+     * игрока к игровой сессии
+     * @param player
+     * @param headerAccessor
+     */
     @MessageMapping("/addplayer")
     public synchronized void joinGame(@Payload Player player,
                            SimpMessageHeaderAccessor headerAccessor) {
@@ -45,6 +55,12 @@ public class PlayersController {
         simpMessagingTemplate.convertAndSend("/topic/players", playersList);
     }
 
+    /**
+     * Метод, который позволяет
+     * передавать сообщения конкретным
+     * игрокам
+     * @param message
+     */
     @MessageMapping("/private-message")
     public void send(@Payload PrivateMessage message){
         switch (message.getMessage()) {
@@ -78,6 +94,11 @@ public class PlayersController {
         simpMessagingTemplate.convertAndSend("/private/messages"+message.getReceiverName(), message);
     }
 
+    /**
+     * Метод необходимый для
+     * инициализации игры
+     * @param game
+     */
     @MessageMapping("/init-game")
     public void initGame(@Payload Game game){
         Game currentGame = GameSessionList.getInstance().getGameByPlayerName(game.getFirstPlayerName());
@@ -86,18 +107,35 @@ public class PlayersController {
         }
     }
 
+    /**
+     * Метод, необходимый для
+     * обмена игровыми полями
+     * @param destinationField
+     */
     @MessageMapping("/send-field")
     public void sendField(@Payload DestinationField destinationField){
         simpMessagingTemplate.convertAndSend("/private/game"+destinationField.getReceiverName(), destinationField);
     }
 
+    /**
+     * Метод, для отправки
+     * координат выбранной для атаки
+     * ячейки
+     * @param move
+     */
     @MessageMapping("/send-move")
     public void sendMove(@Payload Move move){
         simpMessagingTemplate.convertAndSend("/private/game" + move.getReceiverName(), move);
     }
 
 
-
+    /**
+     * Вспомогательный метод
+     * для переноса игрока в список
+     * игроков, недоступных для
+     * приглашения
+     * @param playerName
+     */
     private void hidePlayer(String playerName) {
         Player player = PlayersSessionList.getInstance().getPlayerByName(playerName);
         HiddenPlayersSessionList.getInstance().addPlayerToHiddenSession(player);
@@ -106,6 +144,13 @@ public class PlayersController {
         simpMessagingTemplate.convertAndSend("/topic/players", playersList);
     }
 
+    /**
+     * Вспомогательный метод
+     * для возврата игрока в список
+     * игроков доступных
+     * для приглашения
+     * @param playerName
+     */
     private void showPlayer(String playerName) {
         Player player = HiddenPlayersSessionList.getInstance().getPlayerByName(playerName);
         PlayersSessionList.getInstance().addPlayerToSession(player);

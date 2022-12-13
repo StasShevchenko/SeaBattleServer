@@ -6,6 +6,11 @@ import org.springframework.web.bind.annotation.*;
 
 import java.sql.*;
 
+/**
+ * Класс предоставляющий
+ * функционал авторизации
+ * и регистрации
+ */
 @RestController
 public class AuthController {
 
@@ -13,6 +18,13 @@ public class AuthController {
     private final String USER = "postgres";
     private final String PASS = "MyNameIsEminem";
 
+    /**
+     * Метод внутри которого проверяем
+     * наличие пользователя в базе данных
+     * при попытке авторизации
+     * @param userCredentials
+     * @return
+     */
     @PostMapping("/login")
     @CrossOrigin(origins = "*")
     public int logIn(@RequestBody UserCredentials userCredentials) {
@@ -22,9 +34,7 @@ public class AuthController {
             Statement statement = connection.createStatement();
             ResultSet resultSet = statement.executeQuery("SELECT * FROM users WHERE login = '" + userCredentials.getLogin() + "' " +
                     "and password = '" + userCredentials.getPassword() + "'");
-            System.out.println("Игрок логинится");
             if (resultSet.next()) return 1;
-
         } catch (SQLException e) {
             e.printStackTrace();
         } catch (ClassNotFoundException e) {
@@ -33,6 +43,14 @@ public class AuthController {
         return 0;
     }
 
+    /**
+     * Метод, необходимый для
+     * регистрации пользователя в базе данных
+     * Внутри метода также происходит проверка
+     * совпадения логина с уже имеющимися логинами
+     * @param userCredentials
+     * @return
+     */
     @PostMapping("/register")
     @CrossOrigin(origins = "*")
     public int register(@RequestBody UserCredentials userCredentials) {

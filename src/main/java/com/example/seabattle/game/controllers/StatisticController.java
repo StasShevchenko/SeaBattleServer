@@ -13,14 +13,25 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 
+/**
+ * Класс, необходимый для
+ * генирации статистики и отправки её
+ * на клиент
+ */
 @RestController
 public class StatisticController {
     private final String DB_URL = "jdbc:postgresql://127.0.0.01:5432/seabattle";
     private final String USER = "postgres";
     private final String PASS = "MyNameIsEminem";
 
+    /**
+     * Метод получения статистики
+     * конкретного игрока
+     * @param name
+     * @return
+     */
     @GetMapping("/playerstatistic")
-    @CrossOrigin(origins = "http://192.168.109.228:5501")
+    @CrossOrigin(origins = "*")
     @ResponseBody
     public ArrayList<GameInfo> getPlayerStatistic(@RequestParam(name = "name") String name) {
         ArrayList<GameInfo> gameInfoList = new ArrayList<>();
@@ -47,8 +58,13 @@ public class StatisticController {
         return gameInfoList;
     }
 
+    /**
+     * Метод для получения статистики
+     * лучших игроков за всё время
+     * @return
+     */
     @GetMapping("/overallstatistic")
-    @CrossOrigin(origins = "http://192.168.109.228:5501")
+    @CrossOrigin(origins = "*")
     @ResponseBody
     public  List<PlayerStatistic> getOverallStatistic(){
         ArrayList<PlayerStatistic> overallStatisticList = new ArrayList<>();
@@ -76,6 +92,7 @@ public class StatisticController {
                 DecimalFormat numberFormat = new DecimalFormat("##.##");
                 String winPercentageString = numberFormat.format(winPercentage);
                 playerStatistic.setWinPercentage(winPercentageString);
+                if(!(Integer.parseInt(playerStatistic.getWinCount()) == 0 && Integer.parseInt(playerStatistic.getLoseCount()) == 0))
                 overallStatisticList.add(playerStatistic);
             }
         } catch (SQLException e) {

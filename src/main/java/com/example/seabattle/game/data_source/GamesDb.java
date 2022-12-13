@@ -5,11 +5,21 @@ import com.example.seabattle.game.model.GameInfo;
 import java.sql.*;
 import java.util.ArrayList;
 
+/**
+ * Класс необходимый
+ * для сохранения информации об играх
+ * в базу данных
+ */
 public class GamesDb {
     private final String DB_URL = "jdbc:postgresql://127.0.0.01:5432/seabattle";
     private final String USER = "postgres";
     private final String PASS = "MyNameIsEminem";
 
+    /**
+     * Метод сохранения информации
+     * об игре в базу данных
+     * @param gameInfo
+     */
     public void insertGameInfo(GameInfo gameInfo) {
         try {
             Class.forName("org.postgresql.Driver");
@@ -24,6 +34,11 @@ public class GamesDb {
         }
     }
 
+    /**
+     * Метод получения данных обо
+     * всех играх за всё время
+     * @return
+     */
     public ArrayList<GameInfo> getAllGames(){
         ArrayList<GameInfo> gameInfoList = new ArrayList<>();
         try {

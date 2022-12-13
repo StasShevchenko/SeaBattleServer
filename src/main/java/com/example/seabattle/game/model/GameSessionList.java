@@ -3,6 +3,11 @@ package com.example.seabattle.game.model;
 import java.util.ArrayList;
 import java.util.Objects;
 
+/**
+ * Класс, необходимый
+ * для хранения игроков,
+ * доступных для приглашения
+ */
 public class GameSessionList {
 
     private ArrayList<Game> gameList = new ArrayList<>();

@@ -9,6 +9,11 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 
+/**
+ * Класс обёртка, для
+ * предоставления слоя абстракции
+ * над классом GamesDb
+ */
 public class GamesRepository {
     GamesDb gamesDb;
 
@@ -16,6 +21,13 @@ public class GamesRepository {
         this.gamesDb = gamesDb;
     }
 
+    /**
+     * Метод для добавления игры
+     * в базу данных
+     * @param winnerName
+     * @param loserName
+     * @return
+     */
     public ArrayList<GameInfo> addGame(String winnerName, String loserName) {
         Player winnerPlayer = HiddenPlayersSessionList.getInstance().getPlayerByName(winnerName);
         Player loserPlayer = HiddenPlayersSessionList.getInstance().getPlayerByName(loserName);
@@ -28,6 +40,11 @@ public class GamesRepository {
         return gamesDb.getAllGames();
     }
 
+    /**
+     * Метод получения информации
+     * обо всех прошедших играх
+     * @return
+     */
     public ArrayList<GameInfo> getGames(){
         return gamesDb.getAllGames();
     }
